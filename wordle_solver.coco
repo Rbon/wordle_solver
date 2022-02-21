@@ -1,0 +1,89 @@
+# TODO: interactivity
+
+from itertools import product
+import words
+from lib_rbon import flip, uncurry, split
+import time
+
+alphabet = 'abcdefghijklmnopqrstuvwxyz'
+
+all_combos = tuple(product(alphabet, repeat=5))
+# all_combos = tuple <| product <*| (alphabet, repeat=5)
+
+def fancy_print(iterable) = '\n'.join(tuple(map(''.join, iterable)))
+
+def parse(command) = command |> split$(" = ") |*> zip |> make_info
+
+def make_info(pairs):
+    greens = []
+    yellows = []
+    bads = []
+    index = 0
+    for i in pairs:
+        if i[1] == 'g':
+            greens.append((i[0], index))
+        elif i[1] == 'y':
+            yellows.append((i[0], index))
+        elif i[1] == 'b':
+            bads.append((i[0]))
+        index += 1
+    return {'greens': greens, 'yellows': yellows, 'bads': bads}
+
+def remove_matches(xs, ys) = ys |> filter$(y -> y not in xs)
+
+def step(info):
+    possible_letters = alphabet |> remove_matches$(info["bads"])
+    
+    '' |> print
+    "generating words sans bad letters..." |> print
+    start_time = time.perf_counter()
+    all_combos = product(possible_letters, repeat=5) |> tuple
+    'total combos: ' + (all_combos |> tuple |> len |> str) |> print
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) + '\n' |> print
+
+    "filtering greens..." |> print
+    start_time = time.perf_counter()
+    guesses = info['greens'] |> filter_with_greens$(all_combos) |> tuple
+    'green guesses: ' + (guesses |> tuple |> len |> str) |> print
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) + '\n' |> print
+    
+    "filtering yellows..." |> print
+    start_time = time.perf_counter()
+    guesses = info['yellows'] |> filter_with_yellows$(guesses) |> tuple
+    'yellow guesses: ' + (guesses |> tuple |> len |> str) |> print
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) + '\n' |> print
+
+    "filtering possible solutions..." |> print
+    start_time = time.perf_counter()
+    guesses = [x for x in guesses if ''.join(x) in words.all_words]
+    'possible solutions: ' + (guesses |> tuple |> len |> str) |> print
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) + '\n' |> print
+
+    return guesses
+
+# def filter_at_position(words, pos, letter) = [x for x in words if (x[pos] is letter)]
+
+def filter_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] == y)
+
+def filter_not_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] != y)
+
+def filter_contains(xs, y) = xs |> filter$(x -> y in x)
+
+def filter_with_greens(words, greens):
+    output = words
+    for i in greens:
+        output = filter_at_position(output, i[0], i[1])
+    return output
+
+def filter_with_yellows(words, yellows):
+    output = words
+    for i in yellows:
+        output = filter_not_at_position(output, i[0], i[1])
+        output = filter_contains(output, i[0])
+    return output
+
+# "panic = bgbgy" |> parse |> step |> fancy_print |> print

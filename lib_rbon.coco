@@ -1,0 +1,8 @@
+def flip(f) = (x, y) -> (y, x) |*> f
+
+
+def uncurry(f) = g $ f where:
+    def g(f, [x,y]) = (x, y) |*> f
+
+split = str.split |> flip
+curry = ($)
