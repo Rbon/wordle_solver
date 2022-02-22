@@ -48,10 +48,10 @@ def generate_words(chars):
 def step(info) =
     'abcdefghijklmnopqrstuvwxyz' \
     |> remove_matches$(info["bads"]) \
-    |> measure_exec_time$(generate_words) \
-    |> measure_exec_time$(filter_with_greens$(info['greens'])) \
-    |> measure_exec_time$(filter_with_yellows$(info['yellows'])) \
-    |> measure_exec_time$(filter_actual_words)
+    |> exec_time$(generate_words) \
+    |> exec_time$(filter_with_greens$(info['greens'])) \
+    |> exec_time$(filter_with_yellows$(info['yellows'], info['unknown'])) \
+    |> exec_time$(filter_actual_words)
 
 def filter_actual_words(guesses):
     "filtering actual words..." |> print
@@ -65,7 +65,7 @@ def filter_not_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] != y)
 
 def filter_contains(xs, y) = xs |> filter$(x -> y in x)
 
-def measure_exec_time(f, *args):
+def exec_time(f, *args):
     start_time = time.perf_counter()
     output = f(*args)
     end_time = time.perf_counter()
@@ -81,15 +81,25 @@ def filter_with_greens(greens, words):
     'green guesses: ' + (output |> len |> str) |> print
     return output
 
-def filter_with_yellows(yellows, words):
+def filter_with_yellows(yellows, unknown, words):
     "filtering yellows..." |> print
     output = words
     for i in yellows:
         output = filter_not_at_position(output, i[0], i[1])
-        output = filter_contains(output, i[0])
+        output = filter_at_any_of(output, i[0], unknown)
     output = output |> tuple
     'yellow guesses: ' + (output |> len |> str) |> print
     return output
 
+def filter_at_any_of(xs, y, ps) =
+    xs |> filter$(at_any_of$(y, ps)) |> tuple
+
+def at_any_of(y, ps, x):
+    for p in ps:
+        if x[p] == y:
+            return True
+    return False
+
 '' |> print
-"panic = bgbgy" |> parse |> step |> fancy_print |> print
+"apdlp = ggbgy" |> parse  |> step |> fancy_print \
+|> print

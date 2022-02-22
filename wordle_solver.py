@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xc8064a64
+# __coconut_hash__ = 0xd6d5faf5
 
 # Compiled with Coconut version 1.6.0 [Vocational Guidance Counsellor]
 
@@ -1211,7 +1211,7 @@ def generate_words(chars):  #42 (line num in coconut source)
 
 @_coconut_tco  #48 (line num in coconut source)
 def step(info):  #48 (line num in coconut source)
-    return _coconut_tail_call((measure_exec_time), filter_actual_words, (measure_exec_time)(_coconut.functools.partial(filter_with_yellows, info['yellows']), (measure_exec_time)(_coconut.functools.partial(filter_with_greens, info['greens']), (measure_exec_time)(generate_words, (remove_matches)(info["bads"], 'abcdefghijklmnopqrstuvwxyz')))))  #49 (line num in coconut source)
+    return _coconut_tail_call((exec_time), filter_actual_words, (exec_time)(_coconut.functools.partial(filter_with_yellows, info['yellows'], info['unknown']), (exec_time)(_coconut.functools.partial(filter_with_greens, info['greens']), (exec_time)(generate_words, (remove_matches)(info["bads"], 'abcdefghijklmnopqrstuvwxyz')))))  #49 (line num in coconut source)
 
 def filter_actual_words(guesses):  #56 (line num in coconut source)
     (print)("filtering actual words...")  #57 (line num in coconut source)
@@ -1231,7 +1231,7 @@ def filter_not_at_position(xs, y, pos):  #64 (line num in coconut source)
 def filter_contains(xs, y):  #66 (line num in coconut source)
     return _coconut_tail_call((filter), lambda x: y in x, xs)  #66 (line num in coconut source)
 
-def measure_exec_time(f, *args):  #68 (line num in coconut source)
+def exec_time(f, *args):  #68 (line num in coconut source)
     start_time = time.perf_counter()  #69 (line num in coconut source)
     output = f(*args)  #70 (line num in coconut source)
     end_time = time.perf_counter()  #71 (line num in coconut source)
@@ -1247,15 +1247,26 @@ def filter_with_greens(greens, words):  #75 (line num in coconut source)
     (print)('green guesses: ' + ((str)((len)(output))))  #81 (line num in coconut source)
     return (output)  #82 (line num in coconut source)
 
-def filter_with_yellows(yellows, words):  #84 (line num in coconut source)
+def filter_with_yellows(yellows, unknown, words):  #84 (line num in coconut source)
     (print)("filtering yellows...")  #85 (line num in coconut source)
     output = words  #86 (line num in coconut source)
     for i in yellows:  #87 (line num in coconut source)
         output = filter_not_at_position(output, i[0], i[1])  #88 (line num in coconut source)
-        output = filter_contains(output, i[0])  #89 (line num in coconut source)
-    output = (tuple)(output)  #90 (line num in coconut source)
-    (print)('yellow guesses: ' + ((str)((len)(output))))  #91 (line num in coconut source)
-    return (output)  #92 (line num in coconut source)
+# output = filter_contains(output, i[0])
+        output = filter_at_any_of(output, i[0], unknown)  #90 (line num in coconut source)
+    output = (tuple)(output)  #91 (line num in coconut source)
+    (print)('yellow guesses: ' + ((str)((len)(output))))  #92 (line num in coconut source)
+    return (output)  #93 (line num in coconut source)
 
-(print)('')  #94 (line num in coconut source)
-(print)((fancy_print)((step)((parse)("panic = bgbgy"))))  #95 (line num in coconut source)
+@_coconut_tco  #95 (line num in coconut source)
+def filter_at_any_of(xs, y, ps):  #95 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(_coconut.functools.partial(at_any_of, y, ps), xs))  #96 (line num in coconut source)
+
+def at_any_of(y, ps, x):  #98 (line num in coconut source)
+    for p in ps:  #99 (line num in coconut source)
+        if x[p] == y:  #100 (line num in coconut source)
+            return (True)  #101 (line num in coconut source)
+    return (False)  #102 (line num in coconut source)
+
+(print)('')  #104 (line num in coconut source)
+(print)((fancy_print)((step)((parse)("apdlp = ggbgy"))))  #105 (line num in coconut source)
