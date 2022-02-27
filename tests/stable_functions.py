@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd88aff10
+# __coconut_hash__ = 0x7dc5e61
 
 # Compiled with Coconut version 1.6.0 [Vocational Guidance Counsellor]
 
@@ -1159,127 +1159,26 @@ _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_filter, _cocon
 
 # Compiled Coconut: -----------------------------------------------------------
 
-# TODO:
-# OMNIFILTER (make it so the guesses are only traversed once.
-#   do all the filtering in one loop)
+from itertools import product  #1 (line num in coconut source)
 
-from itertools import product  #5 (line num in coconut source)
-import words  #6 (line num in coconut source)
-from lib_rbon import flip  #7 (line num in coconut source)
-from lib_rbon import uncurry  #7 (line num in coconut source)
-from lib_rbon import split  #7 (line num in coconut source)
-import time  #8 (line num in coconut source)
+@_coconut_tco  #3 (line num in coconut source)
+def filter_at_position(xs, y, pos):  #3 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(lambda x: x[pos] == y, xs))  #3 (line num in coconut source)
 
-@_coconut_tco  #10 (line num in coconut source)
-def fancy_print(iterable):  #10 (line num in coconut source)
-    return _coconut_tail_call('\n'.join, tuple(map(''.join, iterable)))  #10 (line num in coconut source)
+@_coconut_tco  #5 (line num in coconut source)
+def filter_contains(xs, y):  #5 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(lambda x: y in x, xs))  #5 (line num in coconut source)
 
-@_coconut_tco  #12 (line num in coconut source)
-def parse(command):  #12 (line num in coconut source)
-    return _coconut_tail_call((make_info), (zip)(*(split)(" = ", command)))  #12 (line num in coconut source)
+def generate_words(chars):  #7 (line num in coconut source)
+    (print)("generating words sans bad letters...")  #8 (line num in coconut source)
+    output = (tuple)(product(chars, repeat=5))  #9 (line num in coconut source)
+    (print)('total words: ' + ((str)((len)(output))))  #10 (line num in coconut source)
+    return (output)  #11 (line num in coconut source)
 
-def make_info(pairs):  #14 (line num in coconut source)
-    greens = []  #15 (line num in coconut source)
-    yellows = []  #16 (line num in coconut source)
-    bads = []  #17 (line num in coconut source)
-    unknown = [0, 1, 2, 3, 4]  #18 (line num in coconut source)
-    index = 0  #19 (line num in coconut source)
-    for i in pairs:  #20 (line num in coconut source)
-        if i[1] == 'g':  #21 (line num in coconut source)
-            greens.append((i[0], index))  #22 (line num in coconut source)
-            unknown.remove(index)  #23 (line num in coconut source)
-        elif i[1] == 'y':  #24 (line num in coconut source)
-            yellows.append((i[0], index))  #25 (line num in coconut source)
-        elif i[1] == 'b':  #26 (line num in coconut source)
-            bads.append((i[0]))  #27 (line num in coconut source)
-        index += 1  #28 (line num in coconut source)
-    return ({'greens': greens, 'yellows': yellows, 'bads': bads, 'unknown': unknown})  #29 (line num in coconut source)
+@_coconut_tco  #13 (line num in coconut source)
+def parse(command):  #13 (line num in coconut source)
+    return _coconut_tail_call((make_info), (zip)(*(split)(" = ", command)))  #13 (line num in coconut source)
 
-@_coconut_tco  #36 (line num in coconut source)
-def remove_matches(xs, ys):  #36 (line num in coconut source)
-    return _coconut_tail_call((tuple), (filter)(lambda y: y not in xs, ys))  #36 (line num in coconut source)
-
-def generate_words(chars):  #38 (line num in coconut source)
-    (print)("generating words sans bad letters...")  #39 (line num in coconut source)
-    output = (tuple)(product(chars, repeat=5))  #40 (line num in coconut source)
-    (print)('total words: ' + ((str)((len)(output))))  #41 (line num in coconut source)
-    return (output)  #42 (line num in coconut source)
-
-
-@_coconut_tco  #45 (line num in coconut source)
-def step(info):  #45 (line num in coconut source)
-    return _coconut_tail_call((exec_time), filter_actual_words, (exec_time)(_coconut.functools.partial(filter_with_yellows, info['yellows'], info['unknown']), (exec_time)(_coconut.functools.partial(filter_with_greens, info['greens']), (exec_time)(generate_words, (remove_matches)(info["bads"], 'abcdefghijklmnopqrstuvwxyz')))))  #46 (line num in coconut source)
-
-def filter_actual_words(guesses):  #53 (line num in coconut source)
-    (print)("filtering actual words...")  #54 (line num in coconut source)
-    output = [x for x in guesses if ''.join(x) in words.all_words]  #55 (line num in coconut source)
-    (print)('possible solutions: ' + ((str)((len)((tuple)(output)))))  #56 (line num in coconut source)
-    return (output)  #57 (line num in coconut source)
-
-@_coconut_tco  #59 (line num in coconut source)
-def filter_at_position(xs, y, pos):  #59 (line num in coconut source)
-    return _coconut_tail_call((tuple), (filter)(lambda x: x[pos] == y, xs))  #59 (line num in coconut source)
-
-@_coconut_tco  #61 (line num in coconut source)
-def filter_not_at_position(xs, y, pos):  #61 (line num in coconut source)
-    return _coconut_tail_call((filter), lambda x: x[pos] != y, xs)  #61 (line num in coconut source)
-
-@_coconut_tco  #63 (line num in coconut source)
-def filter_contains(xs, y):  #63 (line num in coconut source)
-    return _coconut_tail_call((tuple), (filter)(lambda x: y in x, xs))  #63 (line num in coconut source)
-
-def exec_time(f, *args):  #65 (line num in coconut source)
-    start_time = time.perf_counter()  #66 (line num in coconut source)
-    output = f(*args)  #67 (line num in coconut source)
-    end_time = time.perf_counter()  #68 (line num in coconut source)
-    (print)("finished in: " + ((str)(end_time - start_time)) + '\n')  #69 (line num in coconut source)
-    return (output)  #70 (line num in coconut source)
-
-def filter_with_greens(greens, words):  #72 (line num in coconut source)
-    (print)("filtering greens...")  #73 (line num in coconut source)
-    output = words  #74 (line num in coconut source)
-    for i in greens:  #75 (line num in coconut source)
-        output = filter_at_position(output, i[0], i[1])  #76 (line num in coconut source)
-    output = (tuple)(output)  #77 (line num in coconut source)
-    (print)('green guesses: ' + ((str)((len)(output))))  #78 (line num in coconut source)
-    return (output)  #79 (line num in coconut source)
-
-def filter_with_yellows(yellows, unknown, words):  #81 (line num in coconut source)
-    (print)("filtering yellows...")  #82 (line num in coconut source)
-    output = words  #83 (line num in coconut source)
-    for i in yellows:  #84 (line num in coconut source)
-        output = filter_not_at_position(output, i[0], i[1])  #85 (line num in coconut source)
-        output = filter_at_any_of(output, i[0], unknown)  #86 (line num in coconut source)
-    output = (tuple)(output)  #87 (line num in coconut source)
-    (print)('yellow guesses: ' + ((str)((len)(output))))  #88 (line num in coconut source)
-    return (output)  #89 (line num in coconut source)
-
-@_coconut_tco  #91 (line num in coconut source)
-def filter_at_any_of(xs, y, ps):  #91 (line num in coconut source)
-    return _coconut_tail_call((tuple), (filter)(_coconut.functools.partial(at_any_of, y, ps), xs))  #92 (line num in coconut source)
-
-def at_any_of(y, ps, x):  #94 (line num in coconut source)
-    for p in ps:  #95 (line num in coconut source)
-        if x[p] == y:  #96 (line num in coconut source)
-            return (True)  #97 (line num in coconut source)
-    return (False)  #98 (line num in coconut source)
-
-@_coconut_tco  #100 (line num in coconut source)
-def count_vowels(word):  #100 (line num in coconut source)
-    return _coconut_tail_call((len), (tuple)((filter)(lambda x: x in 'aeiouy', word)))  #100 (line num in coconut source)
-
-def reveal_4_vowel_words(word):  #102 (line num in coconut source)
-    if ((count_vowels)(word)) == 4:  #103 (line num in coconut source)
-        if not (len(word) != len(set(word))):  # filter dupes  #104 (line num in coconut source)
-            print(word)  #105 (line num in coconut source)
-
-def reveal_5_vowel_words(word):  #107 (line num in coconut source)
-    if ((count_vowels)(word)) == 5:  #108 (line num in coconut source)
-        if not (len(word) != len(set(word))):  # filter dupes  #109 (line num in coconut source)
-            print(word)  #110 (line num in coconut source)
-
-if __name__ == '__main__':  #112 (line num in coconut source)
-    (print)('')  #113 (line num in coconut source)
-    (_coconut.functools.partial(_coconut.functools.partial, fmap)(reveal_4_vowel_words))(words.all_words)  #114 (line num in coconut source)
-# "apdlp = ggbgy" |> parse  |> step |> fancy_print \
-# |> print
+@_coconut_tco  #15 (line num in coconut source)
+def remove_matches(xs, ys):  #15 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(lambda y: y not in xs, ys))  #15 (line num in coconut source)

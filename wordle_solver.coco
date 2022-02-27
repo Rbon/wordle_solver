@@ -1,10 +1,6 @@
 # TODO:
-#       proper yellow behaivior
-# 
-#       OMNIFILTER (make it so the guesses are only traversed once.
-#       do all the filtering in one loop)
-#
-#       debug wrappers
+# OMNIFILTER (make it so the guesses are only traversed once.
+#   do all the filtering in one loop)
 
 from itertools import product
 import words
@@ -37,13 +33,14 @@ def make_info(pairs):
         'unknown': unknown
         }
 
-def remove_matches(xs, ys) = ys |> filter$(y -> y not in xs)
+def remove_matches(xs, ys) = ys |> filter$(y -> y not in xs) |> tuple
 
 def generate_words(chars):
     "generating words sans bad letters..." |> print
     output = product(chars, repeat=5) |> tuple
     'total words: ' + (output |> len |> str) |> print
     return output
+
 
 def step(info) =
     'abcdefghijklmnopqrstuvwxyz' \
@@ -59,11 +56,11 @@ def filter_actual_words(guesses):
     'possible solutions: ' + (output |> tuple |> len |> str) |> print
     return output
     
-def filter_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] == y)
+def filter_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] == y) |> tuple
 
 def filter_not_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] != y)
 
-def filter_contains(xs, y) = xs |> filter$(x -> y in x)
+def filter_contains(xs, y) = xs |> filter$(x -> y in x) |> tuple
 
 def exec_time(f, *args):
     start_time = time.perf_counter()
@@ -100,6 +97,20 @@ def at_any_of(y, ps, x):
             return True
     return False
 
-'' |> print
-"apdlp = ggbgy" |> parse  |> step |> fancy_print \
-|> print
+def count_vowels(word) = word |> filter $ (x -> x in 'aeiouy') |> tuple |> len
+
+def reveal_4_vowel_words(word):
+    if (word |> count_vowels) == 4:
+        if not (len(word) != len(set(word))): # filter dupes
+            print word
+
+def reveal_5_vowel_words(word):
+    if (word |> count_vowels) == 5:
+        if not (len(word) != len(set(word))): # filter dupes
+            print word       
+
+if __name__ == '__main__':
+    '' |> print
+    words.all_words |> fmap $ reveal_4_vowel_words
+    # "apdlp = ggbgy" |> parse  |> step |> fancy_print \
+    # |> print

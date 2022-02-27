@@ -1,0 +1,15 @@
+from itertools import product
+
+def filter_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] == y) |> tuple
+
+def filter_contains(xs, y) = xs |> filter$(x -> y in x) |> tuple
+
+def generate_words(chars):
+    "generating words sans bad letters..." |> print
+    output = product(chars, repeat=5) |> tuple
+    'total words: ' + (output |> len |> str) |> print
+    return output
+
+def parse(command) = command |> split$(" = ") |*> zip |> make_info
+
+def remove_matches(xs, ys) = ys |> filter$(y -> y not in xs) |> tuple
