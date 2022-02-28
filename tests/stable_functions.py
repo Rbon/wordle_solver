@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7dc5e61
+# __coconut_hash__ = 0xc15fa77f
 
 # Compiled with Coconut version 1.6.0 [Vocational Guidance Counsellor]
 
@@ -1160,25 +1160,54 @@ _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_filter, _cocon
 # Compiled Coconut: -----------------------------------------------------------
 
 from itertools import product  #1 (line num in coconut source)
+from lib_rbon import flip  #2 (line num in coconut source)
+from lib_rbon import uncurry  #2 (line num in coconut source)
+from lib_rbon import split  #2 (line num in coconut source)
 
-@_coconut_tco  #3 (line num in coconut source)
-def filter_at_position(xs, y, pos):  #3 (line num in coconut source)
-    return _coconut_tail_call((tuple), (filter)(lambda x: x[pos] == y, xs))  #3 (line num in coconut source)
+@_coconut_tco  #4 (line num in coconut source)
+def fancy_print(iterable):  #4 (line num in coconut source)
+    return _coconut_tail_call('\n'.join, tuple(map(''.join, iterable)))  #4 (line num in coconut source)
 
-@_coconut_tco  #5 (line num in coconut source)
-def filter_contains(xs, y):  #5 (line num in coconut source)
-    return _coconut_tail_call((tuple), (filter)(lambda x: y in x, xs))  #5 (line num in coconut source)
+@_coconut_tco  #6 (line num in coconut source)
+def filter_at_position(xs, y, pos):  #6 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(lambda x: x[pos] == y, xs))  #6 (line num in coconut source)
 
-def generate_words(chars):  #7 (line num in coconut source)
-    (print)("generating words sans bad letters...")  #8 (line num in coconut source)
-    output = (tuple)(product(chars, repeat=5))  #9 (line num in coconut source)
-    (print)('total words: ' + ((str)((len)(output))))  #10 (line num in coconut source)
-    return (output)  #11 (line num in coconut source)
+@_coconut_tco  #8 (line num in coconut source)
+def filter_not_at_position(xs, y, pos):  #8 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(lambda x: x[pos] != y, xs))  #9 (line num in coconut source)
 
 @_coconut_tco  #13 (line num in coconut source)
-def parse(command):  #13 (line num in coconut source)
-    return _coconut_tail_call((make_info), (zip)(*(split)(" = ", command)))  #13 (line num in coconut source)
+def filter_contains(xs, y):  #13 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(lambda x: y in x, xs))  #13 (line num in coconut source)
 
-@_coconut_tco  #15 (line num in coconut source)
-def remove_matches(xs, ys):  #15 (line num in coconut source)
-    return _coconut_tail_call((tuple), (filter)(lambda y: y not in xs, ys))  #15 (line num in coconut source)
+def generate_words(chars):  #15 (line num in coconut source)
+    (print)("generating words sans bad letters...")  #16 (line num in coconut source)
+    output = (tuple)(product(chars, repeat=5))  #17 (line num in coconut source)
+    (print)('total words: ' + ((str)((len)(output))))  #18 (line num in coconut source)
+    return (output)  #19 (line num in coconut source)
+
+def make_info(pairs):  #21 (line num in coconut source)
+    greens = []  #22 (line num in coconut source)
+    yellows = []  #23 (line num in coconut source)
+    bads = []  #24 (line num in coconut source)
+    unknown = [0, 1, 2, 3, 4]  #25 (line num in coconut source)
+    index = 0  #26 (line num in coconut source)
+    for i in pairs:  #27 (line num in coconut source)
+        if i[1] == 'g':  #28 (line num in coconut source)
+            greens.append((i[0], index))  #29 (line num in coconut source)
+            if index in unknown:  #30 (line num in coconut source)
+                unknown.remove(index)  #31 (line num in coconut source)
+        elif i[1] == 'y':  #32 (line num in coconut source)
+            yellows.append((i[0], index))  #33 (line num in coconut source)
+        elif i[1] == 'b':  #34 (line num in coconut source)
+            bads.append((i[0]))  #35 (line num in coconut source)
+        index += 1  #36 (line num in coconut source)
+    return ({'greens': greens, 'yellows': yellows, 'bads': bads, 'unknown': unknown})  #37 (line num in coconut source)
+
+@_coconut_tco  #44 (line num in coconut source)
+def parse(command):  #44 (line num in coconut source)
+    return _coconut_tail_call((make_info), (zip)(*(split)(" = ", command)))  #44 (line num in coconut source)
+
+@_coconut_tco  #46 (line num in coconut source)
+def remove_matches(xs, ys):  #46 (line num in coconut source)
+    return _coconut_tail_call((tuple), (filter)(lambda y: y not in xs, ys))  #46 (line num in coconut source)

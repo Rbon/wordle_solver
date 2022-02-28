@@ -1,6 +1,16 @@
 from itertools import product
+import words
+from lib_rbon import flip, uncurry, split
+import time
+
+def fancy_print(iterable) = '\n'.join(tuple(map(''.join, iterable)))
 
 def filter_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] == y) |> tuple
+
+def filter_not_at_position(xs, y, pos) =
+    xs \
+    |> filter$(x -> x[pos] != y) \
+    |> tuple
 
 def filter_contains(xs, y) = xs |> filter$(x -> y in x) |> tuple
 
@@ -9,6 +19,29 @@ def generate_words(chars):
     output = product(chars, repeat=5) |> tuple
     'total words: ' + (output |> len |> str) |> print
     return output
+
+def make_info(pairs):
+    greens = []
+    yellows = []
+    bads = []
+    unknown = [0,1,2,3,4]
+    index = 0
+    for i in pairs:
+        if i[1] == 'g':
+            greens.append((i[0], index))
+            if index in unknown:
+                unknown.remove(index) 
+        elif i[1] == 'y':
+            yellows.append((i[0], index))
+        elif i[1] == 'b':
+            bads.append((i[0]))
+        index += 1
+    return {
+        'greens': greens,
+        'yellows': yellows,
+        'bads': bads,
+        'unknown': unknown
+        }
 
 def parse(command) = command |> split$(" = ") |*> zip |> make_info
 

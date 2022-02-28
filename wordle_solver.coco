@@ -20,7 +20,8 @@ def make_info(pairs):
     for i in pairs:
         if i[1] == 'g':
             greens.append((i[0], index))
-            unknown.remove(index)
+            if index in unknown:
+                unknown.remove(index) 
         elif i[1] == 'y':
             yellows.append((i[0], index))
         elif i[1] == 'b':
@@ -30,10 +31,9 @@ def make_info(pairs):
         'greens': greens,
         'yellows': yellows,
         'bads': bads,
-        'unknown': unknown
-        }
+        'unknown': unknown}
 
-def remove_matches(xs, ys) = ys |> filter$(y -> y not in xs) |> tuple
+def remove_matches(xs, ys) = ys |> filter $ (y -> y not in xs) |> tuple
 
 def generate_words(chars):
     "generating words sans bad letters..." |> print
@@ -58,7 +58,8 @@ def filter_actual_words(guesses):
     
 def filter_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] == y) |> tuple
 
-def filter_not_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] != y)
+def filter_not_at_position(xs, y, pos) =
+    xs |> filter $ (x -> x[pos] != y) |> tuple
 
 def filter_contains(xs, y) = xs |> filter$(x -> y in x) |> tuple
 
