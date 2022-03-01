@@ -46,3 +46,59 @@ def make_info(pairs):
 def parse(command) = command |> split$(" = ") |*> zip |> make_info
 
 def remove_matches(xs, ys) = ys |> filter$(y -> y not in xs) |> tuple
+
+def step(info) =
+    'abcdefghijklmnopqrstuvwxyz' \
+    |> remove_matches$(info["bads"]) \
+    |> exec_time$(generate_words) \
+    |> exec_time$(filter_with_greens$(info['greens'])) \
+    |> exec_time$(filter_with_yellows$(info['yellows'], info['unknown'])) \
+    |> exec_time$(filter_actual_words)
+
+def exec_time(f, *args):
+    start_time = time.perf_counter()
+    output = f(*args)
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) + '\n' |> print
+    return output
+
+def exec_time(f, *args):
+    start_time = time.perf_counter()
+    output = f(*args)
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) + '\n' |> print
+    return output
+
+def filter_with_greens(greens, words):
+    "filtering greens..." |> print
+    output = words
+    for i in greens:
+        output = filter_at_position(output, i[0], i[1])
+    output = output |> tuple
+    'green guesses: ' + (output |> len |> str) |> print
+    return output
+
+def filter_with_yellows(yellows, unknown, words):
+    "filtering yellows..." |> print
+    output = words
+    for i in yellows:
+        output = filter_not_at_position(output, i[0], i[1])
+        output = filter_at_any_of(output, i[0], unknown)
+    output = output |> tuple
+    'yellow guesses: ' + (output |> len |> str) |> print
+    return output
+
+def filter_at_any_of(xs, y, ps) =
+    xs |> filter$(at_any_of$(y, ps)) |> tuple
+
+def at_any_of(y, ps, x):
+    for p in ps:
+        if x[p] == y:
+            return True
+    return False
+
+def filter_actual_words(guesses):
+    "filtering actual words..." |> print
+    output = [x for x in guesses if ''.join(x) in words.all_words]
+    'possible solutions: ' + (output |> tuple |> len |> str) |> print
+    return output

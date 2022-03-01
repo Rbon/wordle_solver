@@ -13,7 +13,11 @@ def test_remove_matches(xs, ys):
 
 @given(st.characters())
 def test_generate_words(chars):
-    assert current.generate_words(chars) == stable.generate_words(chars)
+    output = current.generate_words(chars)
+    assert output == stable.generate_words(chars)
+    assert type(output) is tuple
+    assert type(output[0]) is tuple
+    assert type(output[0][0]) is str
 
 @given(
     st.lists(st.text(min_size=5, max_size=5)),
@@ -42,36 +46,24 @@ def test_parse(left, right):
 def test_make_info(pairs):
     assert current.make_info(pairs) == stable.make_info(pairs)
 
-# def step(info) =
-#     'abcdefghijklmnopqrstuvwxyz' \
-#     |> remove_matches$(info["bads"]) \
-#     |> exec_time$(generate_words) \
-#     |> exec_time$(filter_with_greens$(info['greens'])) \
-#     |> exec_time$(filter_with_yellows$(info['yellows'], info['unknown'])) \
-#     |> exec_time$(filter_actual_words)
+@given(st.lists(st.tuples(st.text(min_size=5, max_size=5))))
+def test_filter_actual_words(guesses):
+    assert current.filter_actual_words(guesses) \
+        == stable.filter_actual_words(guesses)
 
-# def filter_actual_words(guesses):
-#     "filtering actual words..." |> print
-#     output = [x for x in guesses if ''.join(x) in words.all_words]
-#     'possible solutions: ' + (output |> tuple |> len |> str) |> print
-#     return output
-
-
-# def exec_time(f, *args):
-#     start_time = time.perf_counter()
-#     output = f(*args)
-#     end_time = time.perf_counter()
-#     "finished in: " + (end_time - start_time |> str) + '\n' |> print
-#     return output
-
-# def filter_with_greens(greens, words):
-#     "filtering greens..." |> print
-#     output = words
-#     for i in greens:
-#         output = filter_at_position(output, i[0], i[1])
-#     output = output |> tuple
-#     'green guesses: ' + (output |> len |> str) |> print
-#     return output
+@given(
+    st.lists(st.tuples(
+        st.characters(whitelist_categories=["Ll"]),
+        st.integers(min_value=0, max_value=4))),
+    st.lists(st.tuples(
+        st.characters(whitelist_categories=["Ll"]),
+        st.characters(whitelist_categories=["Ll"]),
+        st.characters(whitelist_categories=["Ll"]),
+        st.characters(whitelist_categories=["Ll"]),
+        st.characters(whitelist_categories=["Ll"]))))
+def test_filter_with_greens(greens, words):
+    assert current.filter_with_greens(greens, words) \
+        == stable.filter_with_greens(greens, words)
 
 # def filter_with_yellows(yellows, unknown, words):
 #     "filtering yellows..." |> print
@@ -103,3 +95,25 @@ def test_make_info(pairs):
 #     if (word |> count_vowels) == 5:
 #         if not (len(word) != len(set(word))): # filter dupes
 #             print word   
+
+# @given(
+
+#     st.lists(st.tuples(
+#         st.characters(whitelist_categories=["Ll"]),
+#         st.integers(min_value=0, max_value=4))),
+
+#     st.lists(st.tuples(
+#         st.characters(whitelist_categories=["Ll"]),
+#         st.integers(min_value=0, max_value=4))),
+
+#     st.lists(st.characters(whitelist_categories=["Ll"])),
+#     st.lists(st.integers(min_value=0, max_value=4)))
+
+# this is not ideal, but this function takes forever to generate tests
+# def test_step():
+#     info = {
+#         'greens': [('a', 0), ('p', 1), ('l', 3)],
+#         'yellows': [('p', 4)],
+#         'bads':['d'],
+#         'unknown': [2, 4]}
+#     assert current.step(info) == stable.step(info)

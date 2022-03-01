@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x90e62ca8
+# __coconut_hash__ = 0xb1e9927b
 
 # Compiled with Coconut version 1.6.0 [Vocational Guidance Counsellor]
 
@@ -1281,6 +1281,5 @@ def reveal_5_vowel_words(word):  #108 (line num in coconut source)
 
 if __name__ == '__main__':  #113 (line num in coconut source)
     (print)('')  #114 (line num in coconut source)
-    (_coconut.functools.partial(_coconut.functools.partial, fmap)(reveal_4_vowel_words))(words.all_words)  #115 (line num in coconut source)
-# "apdlp = ggbgy" |> parse  |> step |> fancy_print \
-# |> print
+# words.all_words |> fmap $ reveal_4_vowel_words
+    (print)((parse)("apdlp = ggbgy"))  #116 (line num in coconut source)

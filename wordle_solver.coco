@@ -112,6 +112,6 @@ def reveal_5_vowel_words(word):
 
 if __name__ == '__main__':
     '' |> print
-    words.all_words |> fmap $ reveal_4_vowel_words
-    # "apdlp = ggbgy" |> parse  |> step |> fancy_print \
-    # |> print
+    # words.all_words |> fmap $ reveal_4_vowel_words
+    "apdlp = ggbgy" |> parse \ # |> step |> fancy_print \
+    |> print
