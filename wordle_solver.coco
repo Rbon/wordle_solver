@@ -7,42 +7,83 @@ import words
 from lib_rbon import flip, uncurry, split
 import time
 
-def fancy_print(iterable) = '\n'.join(tuple(map(''.join, iterable)))
+def step(command) =
 
-def parse(command) = command |> split$(" = ") |*> zip |> make_info
+    def filter_at_position(xs, y, pos) =
+        xs |> filter$(x -> x[pos] == y) |> tuple
 
-def make_info(pairs):
-    greens = []
-    yellows = []
-    bads = []
-    unknown = [0,1,2,3,4]
-    index = 0
-    for i in pairs:
-        if i[1] == 'g':
-            greens.append((i[0], index))
-            if index in unknown:
-                unknown.remove(index) 
-        elif i[1] == 'y':
-            yellows.append((i[0], index))
-        elif i[1] == 'b':
-            bads.append((i[0]))
-        index += 1
-    return {
-        'greens': greens,
-        'yellows': yellows,
-        'bads': bads,
-        'unknown': unknown}
+    def filter_not_at_position(xs, y, pos) =
+        xs |> filter $ (x -> x[pos] != y) |> tuple
 
-def remove_matches(xs, ys) = ys |> filter $ (y -> y not in xs) |> tuple
+    def filter_contains(xs, y) = xs |> filter$(x -> y in x) |> tuple
 
-def generate_words(chars):
-    "generating words sans bad letters..." |> print
-    output = product(chars, repeat=5) |> tuple
-    'total words: ' + (output |> len |> str) |> print
-    return output
+    def filter_at_any_of(xs, y, ps) =
+        xs |> filter$(at_any_of$(y, ps)) |> tuple
 
+    def at_any_of(y, ps, x):
+        for p in ps:
+            if x[p] == y:
+                return True
+        return False
 
-def step(info) =
+    def make_info(pairs):
+        greens = []
+        yellows = []
+        bads = []
+        unknown = [0,1,2,3,4]
+        index = 0
+        for i in pairs:
+            if i[1] == 'g':
+                greens.append((i[0], index))
+                if index in unknown:
+                    unknown.remove(index) 
+            elif i[1] == 'y':
+                yellows.append((i[0], index))
+            elif i[1] == 'b':
+                bads.append((i[0]))
+            index += 1
+        return {
+            'greens': greens,
+            'yellows': yellows,
+            'bads': bads,
+            'unknown': unknown}
+
+    def generate_words(chars):
+        "generating words sans bad letters..." |> print
+        output = product(chars, repeat=5) |> tuple
+        'total words: ' + (output |> len |> str) |> print
+        return output
+
+    def filter_with_greens(greens, words):
+        "filtering greens..." |> print
+        output = words
+        for i in greens:
+            output = filter_at_position(output, i[0], i[1])
+        output = output |> tuple
+        'green guesses: ' + (output |> len |> str) |> print
+        return output
+
+    def filter_with_yellows(yellows, unknown, words):
+        "filtering yellows..." |> print
+        output = words
+        for i in yellows:
+            output = filter_not_at_position(output, i[0], i[1])
+            output = filter_at_any_of(output, i[0], unknown)
+        output = output |> tuple
+        'yellow guesses: ' + (output |> len |> str) |> print
+        return output
+
+    def filter_actual_words(guesses):
+        "filtering actual words..." |> print
+        output = [x for x in guesses if ''.join(x) in words.all_words]
+        'possible solutions: ' + (output |> tuple |> len |> str) |> print
+        return output
+
+    def remove_matches(xs, ys) = ys |> filter $ (y -> y not in xs) |> tuple
+
+    # parse the command into a dict of info
+    info = command |> split$(" = ") |*> zip |> make_info
+
     'abcdefghijklmnopqrstuvwxyz' \
     |> remove_matches$(info["bads"]) \
     |> exec_time$(generate_words) \
@@ -50,53 +91,12 @@ def step(info) =
     |> exec_time$(filter_with_yellows$(info['yellows'], info['unknown'])) \
     |> exec_time$(filter_actual_words)
 
-def filter_actual_words(guesses):
-    "filtering actual words..." |> print
-    output = [x for x in guesses if ''.join(x) in words.all_words]
-    'possible solutions: ' + (output |> tuple |> len |> str) |> print
-    return output
-    
-def filter_at_position(xs, y, pos) = xs |> filter$(x -> x[pos] == y) |> tuple
-
-def filter_not_at_position(xs, y, pos) =
-    xs |> filter $ (x -> x[pos] != y) |> tuple
-
-def filter_contains(xs, y) = xs |> filter$(x -> y in x) |> tuple
-
 def exec_time(f, *args):
     start_time = time.perf_counter()
     output = f(*args)
     end_time = time.perf_counter()
     "finished in: " + (end_time - start_time |> str) + '\n' |> print
     return output
-
-def filter_with_greens(greens, words):
-    "filtering greens..." |> print
-    output = words
-    for i in greens:
-        output = filter_at_position(output, i[0], i[1])
-    output = output |> tuple
-    'green guesses: ' + (output |> len |> str) |> print
-    return output
-
-def filter_with_yellows(yellows, unknown, words):
-    "filtering yellows..." |> print
-    output = words
-    for i in yellows:
-        output = filter_not_at_position(output, i[0], i[1])
-        output = filter_at_any_of(output, i[0], unknown)
-    output = output |> tuple
-    'yellow guesses: ' + (output |> len |> str) |> print
-    return output
-
-def filter_at_any_of(xs, y, ps) =
-    xs |> filter$(at_any_of$(y, ps)) |> tuple
-
-def at_any_of(y, ps, x):
-    for p in ps:
-        if x[p] == y:
-            return True
-    return False
 
 def count_vowels(word) = word |> filter $ (x -> x in 'aeiouy') |> tuple |> len
 
@@ -110,8 +110,10 @@ def reveal_5_vowel_words(word):
         if not (len(word) != len(set(word))): # filter dupes
             print word       
 
+def fancy_print(iterable) = '\n'.join(tuple(map(''.join, iterable)))
+
 if __name__ == '__main__':
     '' |> print
     # words.all_words |> fmap $ reveal_4_vowel_words
-    "apdlp = ggbgy" |> parse \ # |> step |> fancy_print \
+    "apdlp = ggbgy" |> step |> fancy_print \
     |> print

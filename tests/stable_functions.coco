@@ -47,7 +47,8 @@ def parse(command) = command |> split$(" = ") |*> zip |> make_info
 
 def remove_matches(xs, ys) = ys |> filter$(y -> y not in xs) |> tuple
 
-def step(info) =
+def step(command) =
+    info = command |> parse
     'abcdefghijklmnopqrstuvwxyz' \
     |> remove_matches$(info["bads"]) \
     |> exec_time$(generate_words) \
