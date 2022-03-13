@@ -5,3 +5,10 @@ def uncurry(f) = g $ f where:
 
 split = str.split |> flip
 curry = ($)
+
+def exec_time(f, *args):
+    start_time = time.perf_counter()
+    output = f(*args)
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) |> print
+    return output
