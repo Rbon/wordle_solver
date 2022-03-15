@@ -1,10 +1,14 @@
 from itertools import product
-import words
+import words as wordle_words
 from lib_rbon import flip, uncurry, split
 import time
 
-def step(command):
-    # parse the command into info
+data Info(greens=[], yellows=[], bads=[], unknown=[], words=())
+
+data State(words=(), greens=[], yellows=[], bads=[], unknown=[])
+
+
+def parse(command):
     pairs = command |> split $ (" = ") |*> zip
     greens = []
     yellows = []
@@ -21,23 +25,105 @@ def step(command):
         elif i[1] == 'b':
             bads.append((i[0]))
         index += 1
+    return Info(greens, yellows, bads, unknown)
+    
+def info_add(info1, info2):
+    greens = info1.greens + info2.greens
+    yellows = info1.yellows + info2.yellows
+    bads = info1.bads + info2.bads
+    unknown = info1.unknown + info2.unknown
+    return Info(greens, yellows, bads, unknown)
 
-    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+def step(command):
 
-    # remove bad letters from the pool
-    chars = alphabet |> filter $ (y -> y not in bads) |> tuple
+    info = command |> parse
 
-    "generating words sans bad letters..." |> print
-    possible_words = product(chars, repeat=5) |> tuple
-    'total words: ' + (possible_words |> len |> str) + '\n' |> print
+    greens = info.greens
+    yellows = info.yellows
+    bads = info.bads
+    unknown = info.unknown
 
-    possible_words = possible_words \
+    "filtering words..." |> print
+    start_time = time.perf_counter()
+    # possible_words = possible_words \
+    possible_words = wordle_words.all_words \
+    |> fmap$(tuple) \ # this is needed for test parity
     |> filter$(check_word$(greens, yellows, unknown)) \
-    |> list # this is a list not a tuple to match the stable test
-
-    print("TOTAL WORDS: " + str(len(possible_words)))
+    |> list # this is also needed for test parity
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) |> print
+    print("total words: " + str(len(possible_words)) + '\n')
 
     return possible_words
+
+def new_parse(command):
+    pairs = command |> split $ (" = ") |*> zip
+    greens = []
+    yellows = []
+    bads = []
+    unknown = [0,1,2,3,4]
+    index = 0
+    for i in pairs:
+        if i[1] == 'g':
+            greens.append((i[0], index))
+            if index in unknown:
+                unknown.remove(index) 
+        elif i[1] == 'y':
+            yellows.append((i[0], index))
+        elif i[1] == 'b':
+            bads.append((i[0]))
+        index += 1
+    return State((), greens, yellows, bads, unknown)
+
+def add_state(state1, state2):
+    words = state1.words + state2.words
+    greens = state1.greens + state2.greens
+    yellows = state1.yellows + state2.yellows
+    bads = state1.bads + state2.bads
+    unknown = state1.unknown + state2.unknown
+    return State(words, greens, yellows, bads, unknown)
+
+def new_step(command, state=State(), cheat_level=1):
+
+    new_state = command |> new_parse
+    state = add_state(state, new_state)
+
+    if len(state.words) == 0:
+        case cheat_level:   
+            match 0:
+                "generating words sans bad letters..." |> print
+                start_time = time.perf_counter()
+                words = generate_words(state.bads)
+                end_time = time.perf_counter()
+                "finished in: " + (end_time - start_time |> str) |> print
+                'total words: ' + (words |> len |> str) + '\n' |> print
+            match 1:
+                words = wordle_words.all_words
+            match 2:
+                words = wordle_words.possible_solutions
+    else:
+        words = state.words
+
+    "filtering words..." |> print
+    start_time = time.perf_counter()
+    words = filter_words(words, state.greens, state.yellows, state.unknown, state.bads)
+    end_time = time.perf_counter()
+    "finished in: " + (end_time - start_time |> str) |> print
+    print("total words: " + str(len(words)) + '\n')
+
+    return State(words, state.greens, state.yellows, state.bads, state.unknown)
+
+def generate_words(bads):
+    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+    chars = alphabet |> filter $ (y -> y not in bads) |> tuple
+    possible_words = product(chars, repeat=5) |> tuple
+    return possible_words
+
+def filter_words(words, greens, yellows, unknown, bads) =
+    words \ 
+    |> fmap$(tuple) \ # this is needed for test parity
+    |> filter$(check_word$(greens, yellows, unknown, bads)) \
+    |> tuple
 
 def fits_green(word, green) = word[green[1]] == green[0]
 
@@ -61,10 +147,17 @@ def fits_all_yellows(yellows, unknown, word):
             return False
     return True
 
-def check_word(greens, yellows, unknown, word):
-    if word |> fits_all_greens$(greens):
-        if word |> fits_all_yellows$(yellows, unknown):
-            if ''.join(word) in words.all_words:
+def bad_letters_in_word(bads, word):
+    for bad in bads:
+        if bad in word:
+            return True
+    return False
+
+def check_word(greens, yellows, unknown, bads, word):
+    if not word |> bad_letters_in_word$(bads):
+        if word |> fits_all_greens$(greens):
+            if word |> fits_all_yellows$(yellows, unknown):
+                # if ''.join(word) in words.all_words:
                 return True
     return False
 
@@ -82,8 +175,42 @@ def reveal_5_vowel_words(word):
 
 def fancy_format(iterable) = '\n'.join(tuple(map(''.join, iterable)))
 
+def fancy_print(state, word_max=1000):
+    words = state.words |> fancy_format
+    if state.words |> len > word_max:
+        print("Too many words to print.")
+    else:
+        print(words)
+    print("Total words: " + str(len(state.words)))
+    print("Greens: " + (state.greens |> str))
+    print("Yellows: " + (state.yellows |> str))
+    print("Bads: " + (state.bads |> str))
+
+
+def main():
+    state = State()
+    # thing.strip() |> print
+    while True:
+        print()
+        print(f"{bcolors.GREEN}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
+        i = input("yes?: ")
+        state = (i, state) |*> new_step$(cheat_level=0)
+        state |> fancy_print
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    GREEN = '\033[97;42m'
+    # WARNING = '\033[30;31m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 if __name__ == '__main__':
-    '' |> print
     # words.all_words |> fmap $ reveal_4_vowel_words
-    "audio = ybgby" |> step |> fancy_format \
-    |> print
+    # "audio = ybgby" |> step #|> fancy_format \
+    # ("apdlp = ggbgy", State()) |*> new_step |> print #|> fancy_format \
+    # |> print
+    main()

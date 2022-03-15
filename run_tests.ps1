@@ -1,0 +1,1 @@
+clear && coconut -l .\wordle_solver.coco && coconut -l .\tests\stable_functions.coco && pytest -v
