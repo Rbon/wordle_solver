@@ -5,7 +5,7 @@ import time
 
 data Info(greens=[], yellows=[], bads=[], unknown=[], words=())
 
-data State(words=(), greens=[], yellows=[], bads=[], unknown=[])
+data State(words=(), greens=[], yellows=[], bads=[], unknown=[], board=[])
 
 
 def parse(command):
@@ -73,7 +73,7 @@ def new_parse(command):
         elif i[1] == 'b':
             bads.append((i[0]))
         index += 1
-    return State((), greens, yellows, bads, unknown)
+    return State((), greens, yellows, bads, unknown, [pairs |> tuple])
 
 def add_state(state1, state2):
     words = state1.words + state2.words
@@ -81,7 +81,8 @@ def add_state(state1, state2):
     yellows = state1.yellows + state2.yellows
     bads = state1.bads + state2.bads
     unknown = state1.unknown + state2.unknown
-    return State(words, greens, yellows, bads, unknown)
+    board = state1.board + state2.board
+    return State(words, greens, yellows, bads, unknown, board)
 
 def new_step(command, state=State(), cheat_level=1):
 
@@ -111,7 +112,13 @@ def new_step(command, state=State(), cheat_level=1):
     "finished in: " + (end_time - start_time |> str) |> print
     print("total words: " + str(len(words)) + '\n')
 
-    return State(words, state.greens, state.yellows, state.bads, state.unknown)
+    return State(
+        words,
+        state.greens,
+        state.yellows,
+        state.bads,
+        state.unknown,
+        state.board)
 
 def generate_words(bads):
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
@@ -185,28 +192,45 @@ def fancy_print(state, word_max=1000):
     print("Greens: " + (state.greens |> str))
     print("Yellows: " + (state.yellows |> str))
     print("Bads: " + (state.bads |> str))
+    print()
+    print("Board: \n" + color_board(state.board))
 
+def color_board(board) = board |> fmap$(color_guess) |> '\n'.join
+
+def color_guess(guess) = guess |> fmap$(color_letter) |> ''.join
+
+def color_letter(letter):
+    case letter[1]:
+        match 'g':
+            return f"{bcolors.GREEN}{letter[0]}{bcolors.ENDC}"
+        match 'y':
+            return f"{bcolors.YELLOW}{letter[0]}{bcolors.ENDC}"
+        match 'b':
+            return f"{bcolors.BLACK}{letter[0]}{bcolors.ENDC}"
 
 def main():
     state = State()
     # thing.strip() |> print
     while True:
         print()
-        print(f"{bcolors.GREEN}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
+        # print_green("Warning: No active frommets remain. Continue?")
+        # print_yellow("Warning: No active frommets remain. Continue?")
+        # print_black("Warning: No active frommets remain. Continue?")
         i = input("yes?: ")
-        state = (i, state) |*> new_step$(cheat_level=0)
+        state = (i, state) |*> new_step$(cheat_level=1)
         state |> fancy_print
 
+def color_green(text) = f"{bcolors.GREEN}{text}{bcolors.ENDC}"
+
+def color_yellow(text) = f"{bcolors.YELLOW}{text}{bcolors.ENDC}"
+
+def color_black(text) = f"{bcolors.BLACK}{text}{bcolors.ENDC}"
+
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
     GREEN = '\033[97;42m'
-    # WARNING = '\033[30;31m'
-    FAIL = '\033[91m'
+    YELLOW = '\033[97;43m'
+    BLACK = '\033[97;100m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 if __name__ == '__main__':
     # words.all_words |> fmap $ reveal_4_vowel_words
